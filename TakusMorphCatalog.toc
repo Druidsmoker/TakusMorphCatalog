@@ -1,0 +1,9 @@
+﻿## Interface: 70300
+## Title: Taku's Morph Catalog
+## Version: 1.0.0
+## Author: Taku @Druidsmoker
+## Notes: An in-game model viewer made for morphing
+## DefaultState: Enabled
+## SavedVariables: TakusMorphCatalogDB
+
+TakusMorphCatalog.lua
