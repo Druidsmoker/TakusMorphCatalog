@@ -17,15 +17,6 @@ local DisplayFavorites = false
 -- vars (mounts)
 local DisplayMounts = false
 local Mounts = {}
-foreach(C_MountJournal.GetMountIDs(),
-	function(k,v)
-		local creatureDisplayInfoID, _, _, _, _, _, _, _, _ = C_MountJournal.GetMountInfoExtraByID(v)
-		if creatureDisplayInfoID then
-			Mounts[creatureDisplayInfoID] = 1
-		end
-	end
-)
-
 --
 TakusMorphCatalogDB = {
 	FavoriteList = {}
@@ -391,6 +382,16 @@ TMCFrame.Gallery:SetScript("OnMouseWheel", function(self, delta)
 end)
 
 function TMCFrame.Gallery:Load(Reset)
+	if (#Mounts == 0) then
+		foreach(C_MountJournal.GetMountIDs(),
+			function(k,v)
+				local creatureDisplayInfoID, _, _, _, _, _, _, _, _ = C_MountJournal.GetMountInfoExtraByID(v)
+				if creatureDisplayInfoID then
+					Mounts[creatureDisplayInfoID] = 1
+				end
+			end
+		)
+	end
 	if Debug then
 		print("--- TMCFrame.Gallery:Load ---")
 		print("DisplayMounts .. " .. DisplayMounts)
