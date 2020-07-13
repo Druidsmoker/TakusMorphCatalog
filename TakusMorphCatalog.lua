@@ -3,7 +3,7 @@ local Debug = false
 local MaxNumberOfColumn = 12
 local MinNumberOfColumn = 3
 local NumberOfColumn = 12
-local MaxModelID = 90000
+local MaxModelID = 1000000
 local WindowWidth = 1000
 local WindowHeight = 760
 -- vars
@@ -14,12 +14,25 @@ local LastMaxModelID = 0
 local GoBackStack = {}
 local GoBackDepth = 0
 local DisplayFavorites = false
+-- vars (mounts)
+local DisplayMounts = false
+local Mounts = {}
+foreach(C_MountJournal.GetMountIDs(),
+	function(k,v)
+		local creatureDisplayInfoID, _, _, _, _, _, _, _, _ = C_MountJournal.GetMountInfoExtraByID(v)
+		if creatureDisplayInfoID then
+			Mounts[creatureDisplayInfoID] = 1
+		end
+	end
+)
+
 --
 TakusMorphCatalogDB = {
 	FavoriteList = {}
 }
+
 print("TakusMorphCatalog: Type /tmc to display the morph catalog !")
--- end
+-- end vars and settings
 
 -- TMCFrame (main)
 local TMCFrame = CreateFrame("Frame", nil, UIParent)
@@ -46,21 +59,38 @@ end
 TMCFrame.Collection = CreateFrame("Button",nil,TMCFrame, "UIPanelButtonTemplate")
 TMCFrame.Collection:SetSize(120,30)
 TMCFrame.Collection:SetPoint("TOPLEFT",10,-10)
-TMCFrame.Collection:SetText("Collection")
+TMCFrame.Collection:SetText("All Models")
 TMCFrame.Collection:SetScript("OnClick", function(self, Button, Down)
 	OffsetModelID = 0
 	ModelID = 0
 	DisplayFavorites = false
+	DisplayMounts = false
 	--
 	NumberOfColumn = MaxNumberOfColumn
 	TMCFrame.Gallery:Load(true)
 end)
 -- end Collection
 
+-- Mounts
+TMCFrame.Mounts = CreateFrame("Button",nil,TMCFrame, "UIPanelButtonTemplate")
+TMCFrame.Mounts:SetSize(120,30)
+TMCFrame.Mounts:SetPoint("TOPLEFT",130,-10)
+TMCFrame.Mounts:SetText("Mounts")
+TMCFrame.Mounts:SetScript("OnClick", function(self, Button, Down)
+	OffsetModelID = 0
+	ModelID = 0
+	DisplayMounts = true
+	DisplayFavorites = false
+	--
+	NumberOfColumn = MaxNumberOfColumn
+	TMCFrame.Gallery:Load(true)
+end)
+-- end Mounts
+
 -- Favorites
 TMCFrame.Favorites = CreateFrame("Button",nil,TMCFrame, "UIPanelButtonTemplate")
 TMCFrame.Favorites:SetSize(120,30)
-TMCFrame.Favorites:SetPoint("TOPLEFT",130,-10)
+TMCFrame.Favorites:SetPoint("TOPLEFT",250,-10)
 TMCFrame.Favorites:SetText("Favorites")
 TMCFrame.Favorites:SetScript("OnClick", function(self, Button, Down)
 	OffsetModelID = 0
@@ -273,7 +303,7 @@ TMCFrame.GoToEditBox:SetPoint("LEFT", 150, 0)
 TMCFrame.GoToEditBox:SetMultiLine(false)
 TMCFrame.GoToEditBox:SetAutoFocus(false)
 TMCFrame.GoToEditBox:EnableMouse(true)
-TMCFrame.GoToEditBox:SetMaxLetters(5)
+TMCFrame.GoToEditBox:SetMaxLetters(6)
 --[[TMCFrame.GoToEditBox:SetTextColor(0,0,0,1)--]]
 TMCFrame.GoToEditBox:SetTextInsets(0,0,0,0)
 TMCFrame.GoToEditBox:SetFont('Fonts\\ARIALN.ttf', 12, '')	
@@ -314,6 +344,9 @@ TMCFrame.PreviousPageButton:SetScript("OnLeave", function()
 	TMCFrame.PreviousPageButton.HoverGlow:SetAlpha(0)
 end);
 TMCFrame.PreviousPageButton:SetScript("OnClick", function(self, Button, Down)
+	if (GoBackDepth == 0) then
+		return
+	end
 	OffsetModelID = GoBackStack[GoBackDepth - 1].LastMaxModelID
 	--
 	ModelID = OffsetModelID
@@ -360,6 +393,7 @@ end)
 function TMCFrame.Gallery:Load(Reset)
 	if Debug then
 		print("--- TMCFrame.Gallery:Load ---")
+		print("DisplayMounts .. " .. DisplayMounts)
 		print("ModelID .. " .. ModelID)
 		print("LastMaxModelID .. " .. LastMaxModelID)
 		print("OffsetModelID .. " .. OffsetModelID)
@@ -420,6 +454,15 @@ function TMCFrame.Gallery:Load(Reset)
 						break
 					end
 					ModelID = ModelID + 1
+				end
+			elseif (DisplayMounts) then
+				while ModelID <= MaxModelID do
+					if (Mounts[ModelID]) then
+						Cells[CellIndex].ModelFrame:SetDisplayInfo(ModelID)
+						ModelID = ModelID + 1
+						break
+					end
+					ModelID = ModelID + 1						
 				end
 			else
 				while ModelID <= MaxModelID do
